@@ -28,7 +28,6 @@ class UserBase(SQLModel):
 
 
 class User(UserBase, table=True):
-    __tablename__ = "user"
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
     hashed_password: str
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
@@ -140,7 +139,6 @@ class ExplanationPublic(SQLModel):
 
 
 class Conversation(SQLModel, table=True):
-    __tablename__ = "conversation"
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
     document_id: uuid.UUID = Field(foreign_key="document.id", index=True)
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
@@ -182,3 +180,16 @@ class MessagePublic(SQLModel):
     role: MessageRole
     content: str
     created_at: datetime
+
+# ------  Auth  -------
+
+class Token(SQLModel):
+    access_token: str
+    token_type: str = "bearer"
+
+class TokenPayload(SQLModel):
+    sub: str | None = None
+
+
+class AuthEmail(SQLModel):
+    message: str
