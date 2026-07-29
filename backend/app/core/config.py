@@ -28,13 +28,15 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = 'Layterms'
     API_V1_STR: str = "/api/v1"
     ENVIRONMENT: Literal["local", "development", "production"] = "local"
-    BACKEND_CORS_ORIGIN: Annotated[list[AnyUrl] | str, BeforeValidator(parse_cors)]
+    BACKEND_CORS_ORIGIN: Annotated[list[AnyUrl] | str, BeforeValidator(parse_cors)] = []
     FRONTEND_HOST: str = "http://localhost:5173"
     SENTRY_DSN: HttpUrl | None = None
     SECRET_KEY: str = secrets.token_urlsafe(32)
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE: int = 60 * 60 * 24 * 8
     RESET_TOKEN_EXPIRE: int = 60 * 15
+
+
 
 
     @computed_field
@@ -83,6 +85,31 @@ class Settings(BaseSettings):
     @property
     def enable_email(self) -> bool:
         return (self.SMTP_HOST, self.EMAIL_FROM_EMAIL)
+
+    EMAIL_TEST_USER: EmailStr = "test@example.com"
+    FIRST_SUPERUSER: EmailStr
+    FIRST_SUPERUSER_PASSWORD: str
+
+    def _check_default_secret(self, var_name: str, value: str | None) -> None:
+        if value == "change this":
+            message = (
+                f'The value of {var_name} is "change this"'
+                "for security please change it, at least for deployment"
+           )
+        if self.ENVIRONMENT == "local":
+            warnings.warn(message=message, stacklevel=1)
+        else: 
+            raise ValueError(message)
+
+    @model_validator(mode="after")
+    def _enforce_non_default_secrets(self) -> Self:
+        self._check_default_secret("SECRET_KEY", self.SECRET_KEY)
+        self._check_default_secret("POSTGRES_PASSWORD", self.POSTGRES_PASSWORD)
+        self._check_default_secret(
+            "FIRST_SUPERUSER_PASSWORD", self.FIRST_SUPERUSER_PASSWORD
+        )
+
+        return self
 
 
 settings = Settings()
