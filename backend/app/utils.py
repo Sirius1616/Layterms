@@ -5,9 +5,9 @@ from typing import Any
 from pathlib import Path
 from jinja2 import Template
 from pydantic import EmailStr
-from datetime import datetime
 from dataclasses import dataclass
 from app.core.config import settings
+from datetime import datetime, timedelta
 from jwt.exceptions import InvalidTokenError
 
 
@@ -21,12 +21,9 @@ class EmailData:
 
 
 def render_email_template(template_name: str, context: dict[str] | Any) -> str:
-    template_str = (Path(__file__).parent/"email-templates"/"build"/template_name).read_text
+    template_str = (Path(__file__).parent/"email-templates"/"build"/template_name).read_text()
     html_content = Template(template_str).render(context)
     return html_content
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 
 def send_email(email_to: str, subject: str = "", 
@@ -98,7 +95,7 @@ def generate_password_reset_email(email: str, email_to: str, token: str) -> Emai
 
 def create_password_reset_token(email : str) -> str:
     now = datetime.now()
-    expire = settings.RESET_TOKEN_EXPIRE + now
+    expire = timedelta(minutes=settings.RESET_TOKEN_EXPIRE) + now
     payload = {"sub": email, 
                "exp": expire, 
                "nbf": now,
@@ -116,5 +113,5 @@ def validate_password_reset_token(token: str) -> str:
                    key=settings.SECRET_KEY)
         token = payload["sub"]
         return token
-    except:
-        InvalidTokenError
+    except InvalidTokenError:
+        return None
