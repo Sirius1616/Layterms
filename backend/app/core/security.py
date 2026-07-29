@@ -32,5 +32,3 @@ def create_access_token(sub: str | Any, exp: timedelta) -> str:
                        algorithm=settings.ALGORITHM, 
                        key=settings.SECRET_KEY)
     return token
-
-
