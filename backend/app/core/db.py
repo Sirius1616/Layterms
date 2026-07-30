@@ -1,11 +1,10 @@
-from sqlmodel import select
+from sqlmodel import select, Session
 from app.core.config import settings
-from app.api.deps import SessionDep
 from app.models import User, UserCreate
 from app import crud
 
 
-def create_super_user(session: SessionDep) -> User:
+def create_super_user(session: Session) -> User:
     user = session.exec(select(User).where(User.email == settings.FIRST_SUPERUSER)).first()
     if not user:
         new_user = UserCreate(
