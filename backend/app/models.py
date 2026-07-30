@@ -191,5 +191,13 @@ class TokenPayload(SQLModel):
     sub: str | None = None
 
 
-class AuthEmail(SQLModel):
+class AuthMessage(SQLModel):
     message: str
+
+
+class Filter:
+    skip: int = Field(default=0, ge=0)
+    limit: int = Field(default=0, ge=1, le=100)
+    order_by: str | None = None
+    search: str | None = None
+    descending: bool = False
