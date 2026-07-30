@@ -4,6 +4,7 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 from app.core.config import settings
 from sqlmodel import SQLModel
+from app import models
 
 from alembic import context
 
@@ -13,7 +14,7 @@ config = context.config
 
 config.set_main_option(
     "sqlalchemy.url",
-    settings.DATABASE_URI
+    str(settings.DATABASE_URI)
 )
 
 # Interpret the config file for Python logging.
