@@ -106,12 +106,12 @@ def create_password_reset_token(email : str) -> str:
     return token
 
 
-def validate_password_reset_token(token: str) -> str:
+def validate_password_reset_token(token: str) -> str | None:
     try:
         payload = jwt.decode(token, 
                    algorithms=settings.ALGORITHM, 
                    key=settings.SECRET_KEY)
-        token = payload["sub"]
-        return token
+        sub = payload["sub"]
+        return str(sub)
     except InvalidTokenError:
         return None
