@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     BACKEND_CORS_ORIGIN: Annotated[list[AnyUrl] | str, BeforeValidator(parse_cors)] = []
     FRONTEND_HOST: str = "http://localhost:5173"
     SENTRY_DSN: HttpUrl | None = None
-    SECRET_KEY: str = secrets.token_urlsafe(32)
+    SECRET_KEY: str
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE: int = 60 * 60 * 24 * 8
     RESET_TOKEN_EXPIRE: int = 60 * 15
@@ -49,8 +49,8 @@ class Settings(BaseSettings):
     DATABASE_PORT: int = 5432
     DATABASE_HOST: str
     DATABASE_USERNAME: str
-    DATABASE_PASSWORD: str = ""
-    DATABASE_NAME: str = ""
+    DATABASE_PASSWORD: str
+    DATABASE_NAME: str
 
     
     @computed_field

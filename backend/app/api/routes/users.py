@@ -38,7 +38,7 @@ def create_user(session: SessionDep, user_in: UserCreate) -> UserPublic:
     return new_user
 
 
-@router.post("/signup", response_model=UserPublic, status_code=203)
+@router.post("/signup", response_model=UserPublic, status_code=201)
 def register_new_user(session: SessionDep, user_in: UserRegister) -> UserPublic:
     db_user = crud.get_user_by_email(session=session, email=user_in.email)
     if db_user:
@@ -52,20 +52,20 @@ def register_new_user(session: SessionDep, user_in: UserRegister) -> UserPublic:
             dependencies=[Depends(get_current_admin_user)], 
             response_model=UsersPublic, 
             status_code=201)
-def read_users(session: SessionDep, filters: Filter) -> UsersPublic:
+def read_users(session: SessionDep, filters: Filters) -> UsersPublic:
     count = session.exec(select(func.count()).select_from(User)).one()
-    statement = select(User).order_by(col(User.created_at).desc).offset(filters.skip).limit(filters.limit)
+    statement = select(User).order_by(col(User.created_at).desc()).offset(filters.skip).limit(filters.limit)
     db_users = session.exec(statement).all()
-    users = [UsersPublic.model_validate(user) for user in db_users]
+    users = [UserPublic.model_validate(user) for user in db_users]
     return UsersPublic(data=users, count=count)
     
 
-@router.get("/me", status_code=201)
-def read_me(current_user: CurrentUser) -> UsersPublic:
+@router.get("/me", status_code=201, response_model=UserPublic)
+def read_me(current_user: CurrentUser) -> UserPublic:
 
     return current_user
 
-@router.get("/{user_id}", status_code=201)
+@router.get("/{user_id}", status_code=201, response_model=UserPublic)
 def read_user_by_id(session: SessionDep, current_user: CurrentUser, user_id: uuid.UUID) -> UserPublic:
     user = session.get(User, user_id)
     if not user:
@@ -77,7 +77,9 @@ def read_user_by_id(session: SessionDep, current_user: CurrentUser, user_id: uui
     return user
 
 
-@router.patch("/{user_id}", dependencies=[Depends(get_current_admin_user)])
+@router.patch("/{user_id}", 
+              response_model=UserPublic, 
+              dependencies=[Depends(get_current_admin_user)])
 def update_user(
     session: SessionDep, 
                 user_id: uuid.UUID, 
@@ -87,7 +89,8 @@ def update_user(
     if not user_in_db:
         raise HTTPException(status_code=404, detail="user not found")
     if user_in.email:
-        if user_in.email == user_in_db.email and user_in_db.id != user_id:
+        existing_user = crud.get_user_by_email(session, user_in.email)
+        if existing_user and existing_user.id != user_id:
             raise HTTPException(
                 status_code=302, detail="email belongs to another user"
             )
@@ -103,15 +106,18 @@ def update_user_me(session: SessionDep, user_in: UserUpdateMe, current_user: Cur
         db_user = session.exec(select(User).where(User.email == user_in.email)).first()
         if db_user and db_user.id != current_user.id:
             raise HTTPException(status_code=302, detail="user with this email already exist!")
-    updated_user = crud.UserUpdateMe(full_name=user_in.full_name, 
-                      email=user_in.email)
-    return updated_user
+    user_data = user_in.model_dump(exclude_unset=True)
+    user_update = current_user.sqlmodel_update(user_data)
+    session.add(user_update)
+    session.commit()
+    session.refresh(user_update)
+    return user_update
 
 
-@router.patch("/me/password", response_model=UserPublic)
+@router.patch("/me/password", response_model=AuthMessage)
 def update_password(session: SessionDep, password_data: UpdatePassword, 
                     current_user: CurrentUser
-                    ) -> UserPublic:
+                    ) -> AuthMessage:
     
     verified, _ = verify_password(plain_password=password_data.current_password, 
                                               hashed_password=current_user.hashed_password)
@@ -142,7 +148,7 @@ def detete_user(session: SessionDep, current_user: CurrentUser, user_id: uuid.UU
     db_user = session.get(User, user_id)
     if not db_user:
         raise HTTPException(status_code=404, detail="User with cannot be found")
-    if db_user == current_user:
+    if db_user.id == current_user.id:
         raise HTTPException(status_code=403, detail="A superuser cannot delete themselves")
     session.delete(db_user)
     session.commit()

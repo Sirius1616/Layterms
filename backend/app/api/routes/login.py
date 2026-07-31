@@ -1,5 +1,6 @@
 from app import crud
 from typing import Annotated
+from datetime import timedelta
 from app.core.config import settings
 from fastapi.responses import HTMLResponse
 from app.api.deps import SessionDep, CurrentUser
@@ -15,7 +16,7 @@ from app.utils import (create_password_reset_token, generate_password_reset_emai
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@router.post("/login", response_model=UserPublic)
+@router.post("/login/access-token")
 def login_access_token(session: SessionDep, form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
     user = crud.authenticate(session=session, email=form_data.username, password=form_data.password)
     if not user:
@@ -23,18 +24,18 @@ def login_access_token(session: SessionDep, form_data: Annotated[OAuth2PasswordR
     if not user.is_active:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User is inactive")
     sub = user.email
-    token = create_access_token(sub=sub, exp=settings.ACCESS_TOKEN_EXPIRE)
+    token = create_access_token(sub=sub, exp=timedelta(seconds=settings.ACCESS_TOKEN_EXPIRE))
     return Token(access_token=token)
 
-@router.get("/test-token")
+@router.get("/test-token", response_model=UserPublic)
 def test_token(current_user: CurrentUser) -> UserPublic:
 
     return current_user
 
 
 @router.post("/recover-password/{email}")
-def recover_password(email: str) -> AuthMessage:
-    user = crud.get_user_by_email(email=email)
+def recover_password(email: str, session: SessionDep) -> AuthMessage:
+    user = crud.get_user_by_email(session=session, email=email)
     if user:
         token = create_password_reset_token(email=email)
         email_data = generate_password_reset_email(email=email, 
@@ -61,9 +62,9 @@ def reset_password(session: SessionDep, password_update: NewPassword) -> AuthMes
     return AuthMessage(message="Password updated successfully")
 
 
-@router.post("recover-password-html-content")
+@router.post("/recover-password-html-content")
 def recover_password_html(email: str, session: SessionDep) -> HTMLResponse:
-    user = crud.get_user_by_email(email=email)
+    user = crud.get_user_by_email(email=email, session=session)
     if not user:
         raise HTTPException(status_code=404, detail="User does not exist on the server")
     token = create_password_reset_token(email=email)

@@ -7,21 +7,13 @@ from app.models import User, TokenPayload
 from fastapi.security import OAuth2PasswordBearer
 from sqlmodel import Session, create_engine
 from app.core.config import settings
-from app.crud import get_user_by_email
+from app.crud import get_user_by_email, SessionDep
 
-
-engine = create_engine(str(settings.DATABASE_URI))
 
 reusable_outh2 = OAuth2PasswordBearer(
-    tokenUrl=f"{settings.API_V1_STR}/login/access-token")
+    tokenUrl=f"{settings.API_V1_STR}/auth/login/access-token")
 
 TokenDep = Annotated[str, Depends(reusable_outh2)]
-
-def get_session() -> Generator[Session]:
-    with Session(engine) as session:
-        yield session
-
-SessionDep = Annotated[Session, Depends(get_session)]
 
 
 def get_current_user(session: SessionDep, token: TokenDep) -> User:

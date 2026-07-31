@@ -204,7 +204,7 @@ class AuthMessage(SQLModel):
 
 class Filter(BaseModel):
     skip: int = Field(default=0, ge=0)
-    limit: int = Field(default=0, ge=1, le=100)
+    limit: int = Field(default=5, ge=1, le=100)
     order_by: str | None = None
     search: str | None = None
     descending: bool = False
