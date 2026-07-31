@@ -8,10 +8,10 @@ from app.core.config import settings
 from datetime import datetime, timedelta
 
 
-hasher = PasswordHash.recommended(
+hasher = PasswordHash(
     (
         Argon2Hasher(),
-        BcryptHasher()
+        BcryptHasher(),
     )
 )
 
@@ -27,7 +27,7 @@ def verify_password(plain_password: str, hashed_password: str) -> tuple[bool, st
 
 def create_access_token(sub: str | Any, exp: timedelta) -> str:
     expire = exp + datetime.now()
-    payload = {"sub": sub, "exp": expire}
+    payload = {"sub": str(sub), "exp": expire}
     token = jwt.encode(payload=payload, 
                        algorithm=settings.ALGORITHM, 
                        key=settings.SECRET_KEY)
