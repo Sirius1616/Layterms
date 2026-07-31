@@ -37,6 +37,7 @@ def create_user(session: SessionDep, user_in: UserCreate) -> UserPublic:
                    html_content=email_data.html_content)
     return new_user
 
+
 @router.post("/signup", response_model=UserPublic, status_code=203)
 def register_new_user(session: SessionDep, user_in: UserRegister) -> UserPublic:
     db_user = crud.get_user_by_email(session=session, email=user_in.email)
