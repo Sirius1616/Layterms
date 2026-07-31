@@ -5,8 +5,19 @@ from collections.abc import Generator
 from app.models import (UserCreate, User, UserPublic,
                         UserUpdate, UserUpdateMe)
 from pydantic import EmailStr
-from app.api.deps import SessionDep
+from typing import Annotated
+from fastapi import Depends
+from sqlmodel import create_engine
 from app.core.security import hash_password, verify_password
+
+
+engine = create_engine(str(settings.DATABASE_URI))
+
+def get_session() -> Generator[Session]:
+    with Session(engine) as session:
+        yield session
+
+SessionDep = Annotated[Session, Depends(get_session)]
 
 
 DUMMY_HASH = "$argon2id$v=19$m=65536,t=3,p=4$MjQyZWE1MzBjYjJlZTI0Yw$YTU4NGM5ZTZmYjE2NzZlZjY0ZWY3ZGRkY2U2OWFjNjk"
@@ -18,7 +29,6 @@ def get_user_by_email(session: SessionDep,
     if not user:
         return None
     return user
-
 
 
 def create_user(create_user: UserCreate, 
@@ -84,3 +94,5 @@ def authenticate(session: SessionDep,
         session.commit()
         session.refresh(user)
     return user
+
+

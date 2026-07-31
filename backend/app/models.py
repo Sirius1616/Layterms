@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime, UTC
 from enum import Enum
+from pydantic import BaseModel
 
 from pydantic import EmailStr
 from sqlmodel import SQLModel, Relationship, Field
@@ -191,11 +192,17 @@ class TokenPayload(SQLModel):
     sub: str | None = None
 
 
+class ResetToken(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
+    user_id: uuid.UUID = Field(foreign_key="user.id")
+    is_used: bool = False
+
+
 class AuthMessage(SQLModel):
     message: str
 
 
-class Filter:
+class Filter(BaseModel):
     skip: int = Field(default=0, ge=0)
     limit: int = Field(default=0, ge=1, le=100)
     order_by: str | None = None

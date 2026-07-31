@@ -20,7 +20,7 @@ def parse_cors(v: str) -> list[str] | str:
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file="../.env",
+        env_file=".env",
         env_ignore_empty=True,
         extra="ignore"
     )
@@ -47,17 +47,18 @@ class Settings(BaseSettings):
 
 
     DATABASE_PORT: int = 5432
-    DATABASE_SERVER: str
+    DATABASE_HOST: str
     DATABASE_USERNAME: str
     DATABASE_PASSWORD: str = ""
     DATABASE_NAME: str = ""
 
-    @property
+    
     @computed_field
+    @property
     def DATABASE_URI(self) -> PostgresDsn:
         return PostgresDsn.build(
             scheme="postgresql+psycopg",
-            host=self.DATABASE_SERVER,
+            host=self.DATABASE_HOST,
             username=self.DATABASE_USERNAME,
             password=self.DATABASE_PASSWORD,
             port=self.DATABASE_PORT,
@@ -96,15 +97,15 @@ class Settings(BaseSettings):
                 f'The value of {var_name} is "change this"'
                 "for security please change it, at least for deployment"
            )
-        if self.ENVIRONMENT == "local":
-            warnings.warn(message=message, stacklevel=1)
-        else: 
-            raise ValueError(message)
+            if self.ENVIRONMENT == "local":
+                warnings.warn(message=message, stacklevel=1)
+            else: 
+                raise ValueError(message)
 
     @model_validator(mode="after")
     def _enforce_non_default_secrets(self) -> Self:
         self._check_default_secret("SECRET_KEY", self.SECRET_KEY)
-        self._check_default_secret("POSTGRES_PASSWORD", self.POSTGRES_PASSWORD)
+        self._check_default_secret("DATABASE_PASSWORD", self.DATABASE_PASSWORD)
         self._check_default_secret(
             "FIRST_SUPERUSER_PASSWORD", self.FIRST_SUPERUSER_PASSWORD
         )
@@ -113,4 +114,5 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
 
