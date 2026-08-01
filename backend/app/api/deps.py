@@ -11,7 +11,7 @@ from app.crud import get_user_by_email, SessionDep
 
 
 reusable_outh2 = OAuth2PasswordBearer(
-    tokenUrl=f"{settings.API_V1_STR}/auth/login/access-token")
+    tokenUrl=f"{settings.API_V1_STR}/login/access-token")
 
 TokenDep = Annotated[str, Depends(reusable_outh2)]
 

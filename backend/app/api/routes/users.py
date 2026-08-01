@@ -16,7 +16,7 @@ from app.utils import generete_new_account_email, send_email
 from typing import Annotated
 from fastapi import Query
 
-router = APIRouter(prefix="/user", tags=["user"])
+router = APIRouter(prefix="/users", tags=["user"])
 
 Filters = Annotated[Filter, Query()]
 
