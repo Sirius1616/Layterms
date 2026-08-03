@@ -1,5 +1,6 @@
 import secrets
 import warnings
+from pathlib import Path
 from pydantic import EmailStr
 from pydantic import (AnyUrl, BeforeValidator, 
                       computed_field, model_validator, 
@@ -27,6 +28,7 @@ class Settings(BaseSettings):
 
     PROJECT_NAME: str = 'Layterms'
     API_V1_STR: str = "/api/v1"
+    UPLOAD_DIR: str = "uploads"
     ENVIRONMENT: Literal["local", "development", "production"] = "local"
     BACKEND_CORS_ORIGIN: Annotated[list[AnyUrl] | str, BeforeValidator(parse_cors)] = []
     FRONTEND_HOST: str = "http://localhost:5173"

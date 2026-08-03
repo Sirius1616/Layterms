@@ -15,7 +15,7 @@ from app.utils import (create_password_reset_token, generate_password_reset_emai
 router = APIRouter(tags=["auth"])
 
 
-@router.post("/login/access-token")
+@router.post("/login/access-token", response_model=Token)
 def login_access_token(session: SessionDep, form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
     user = crud.authenticate(session=session, email=form_data.username, password=form_data.password)
     if not user:

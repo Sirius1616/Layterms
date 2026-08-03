@@ -144,7 +144,7 @@ def delete_user_me(session: SessionDep, current_user: CurrentUser) -> AuthMessag
 
 
 @router.delete("/{user_id}", dependencies=[Depends(get_current_admin_user)], status_code=200)
-def detete_user(session: SessionDep, current_user: CurrentUser, user_id: uuid.UUID) -> AuthMessage:
+def delete_user(session: SessionDep, current_user: CurrentUser, user_id: uuid.UUID) -> AuthMessage:
     db_user = session.get(User, user_id)
     if not db_user:
         raise HTTPException(status_code=404, detail="User with cannot be found")
