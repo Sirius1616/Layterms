@@ -1,7 +1,8 @@
+import { DocumentsService, type Body_documents_create_document } from "@/client"
+import type { DocumentPublic } from "@/client"
+
 import type {
   ConversationPublic,
-  DocumentCreate,
-  DocumentPublic,
   DocumentsPublic,
   ExplanationPublic,
   MessageCreate,
@@ -19,16 +20,10 @@ export const documentsApi = {
     return { data: mockDocuments, count: mockDocuments.length }
   },
 
-  async uploadDocument(_data: DocumentCreate): Promise<DocumentPublic> {
-    await delay(1200)
-    const document: DocumentPublic = {
-      id: crypto.randomUUID(),
-      file_url: _data.file_url,
-      uploaded_at: new Date().toISOString(),
-      extraction_status: "pending",
-    }
-    mockDocuments = [document, ...mockDocuments]
-    return document
+  async uploadDocument(file: File): Promise<DocumentPublic> {
+    return DocumentsService.createDocument({
+      formData: { file } as unknown as Body_documents_create_document,
+    })
   },
 
   async getDocument(id: string): Promise<DocumentPublic | undefined> {

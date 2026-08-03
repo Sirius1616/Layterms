@@ -27,8 +27,7 @@ const UploadDocument = () => {
   const { showSuccessToast, showErrorToast } = useCustomToast()
 
   const mutation = useMutation({
-    mutationFn: (fileUrl: string) =>
-      documentsApi.uploadDocument({ file_url: fileUrl }),
+    mutationFn: (file: File) => documentsApi.uploadDocument(file),
     onSuccess: () => {
       showSuccessToast("Document uploaded successfully")
       setFile(null)
@@ -42,7 +41,7 @@ const UploadDocument = () => {
 
   const onSubmit = () => {
     if (!file) return
-    mutation.mutate(file.name)
+    mutation.mutate(file)
   }
 
   return (

@@ -21,8 +21,7 @@ export function AppSidebar() {
   const { user: currentUser } = useAuth()
 
   const isAdmin = Boolean(
-    (currentUser as { is_admin?: boolean } | undefined)?.is_admin ||
-      (currentUser as { is_superuser?: boolean } | undefined)?.is_superuser,
+    (currentUser as { is_admin?: boolean } | undefined)?.is_admin,
   )
 
   const items = isAdmin
