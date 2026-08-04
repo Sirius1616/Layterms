@@ -72,3 +72,26 @@ def read_document(session: SessionDep, current_user: CurrentUser, filename: str)
         raise HTTPException(status_code=404, detail="File not found on the server")
     return FileResponse(path=file_path)
 
+
+@router.delete("/{filename}", status_code=204)
+def delete_file(session: SessionDep, current_user: CurrentUser, filename: str) -> None:
+    file_url = f"{settings.API_V1_STR}/{settings.UPLOAD_DIR}/{filename}"
+
+    doc = session.exec(select(Document).
+                       where(Document.file_url == file_url).
+                       where(Document.user_id == current_user.id)).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="File not found")
+    
+    upload_dir = (Path(__file__).parent.parent.parent.parent/settings.UPLOAD_DIR).resolve()
+
+    file_path = (upload_dir/filename).resolve()
+    if not file_path.is_relative_to(upload_dir):
+        raise HTTPException(status_code=400, detail="Invalid filename")
+
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="File path does not exist")
+    file_path.unlink()
+
+    session.delete(doc)
+    session.commit()
