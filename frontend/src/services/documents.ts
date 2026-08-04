@@ -1,5 +1,6 @@
 import { DocumentsService, type Body_documents_create_document } from "@/client"
 import type { DocumentPublic } from "@/client"
+import { OpenAPI } from "@/client/core/OpenAPI"
 
 import type {
   ConversationPublic,
@@ -11,13 +12,11 @@ import type {
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
-let mockDocuments: DocumentPublic[] = []
 const mockExplanation = ""
 
 export const documentsApi = {
   async listDocuments(): Promise<DocumentsPublic> {
-    await delay(400)
-    return { data: mockDocuments, count: mockDocuments.length }
+    return DocumentsService.readDocuments()
   },
 
   async uploadDocument(file: File): Promise<DocumentPublic> {
@@ -27,8 +26,20 @@ export const documentsApi = {
   },
 
   async getDocument(id: string): Promise<DocumentPublic | undefined> {
-    await delay(300)
-    return mockDocuments.find((document) => document.id === id)
+    const { data } = await documentsApi.listDocuments()
+    return data.find((document) => document.id === id)
+  },
+
+  async getFileBlob(filename: string): Promise<Blob> {
+    const token = localStorage.getItem("access_token")
+    const response = await fetch(
+      `${OpenAPI.BASE}/api/v1/uploads/${encodeURIComponent(filename)}`,
+      { headers: token ? { Authorization: `Bearer ${token}` } : {} },
+    )
+    if (!response.ok) {
+      throw new Error(`Failed to load file: ${response.status}`)
+    }
+    return response.blob()
   },
 
   async getExplanation(_documentId: string): Promise<ExplanationPublic | null> {

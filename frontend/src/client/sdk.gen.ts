@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { AuthLoginAccessTokenData, AuthLoginAccessTokenResponse, AuthTestTokenResponse, AuthRecoverPasswordData, AuthRecoverPasswordResponse, AuthResetPasswordData, AuthResetPasswordResponse, AuthRecoverPasswordHtmlData, AuthRecoverPasswordHtmlResponse, DocumentsCreateDocumentData, DocumentsCreateDocumentResponse, PrivateCreateUserData, PrivateCreateUserResponse, UserCreateUserData, UserCreateUserResponse, UserReadUsersData, UserReadUsersResponse, UserRegisterNewUserData, UserRegisterNewUserResponse, UserReadMeResponse, UserDeleteUserMeResponse, UserUpdateUserMeData, UserUpdateUserMeResponse, UserReadUserByIdData, UserReadUserByIdResponse, UserUpdateUserData, UserUpdateUserResponse, UserDeleteUserData, UserDeleteUserResponse, UserUpdatePasswordData, UserUpdatePasswordResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { AuthLoginAccessTokenData, AuthLoginAccessTokenResponse, AuthTestTokenResponse, AuthRecoverPasswordData, AuthRecoverPasswordResponse, AuthResetPasswordData, AuthResetPasswordResponse, AuthRecoverPasswordHtmlData, AuthRecoverPasswordHtmlResponse, DocumentsCreateDocumentData, DocumentsCreateDocumentResponse, DocumentsReadDocumentsData, DocumentsReadDocumentsResponse, PrivateCreateUserData, PrivateCreateUserResponse, UploadsReadDocumentData, UploadsReadDocumentResponse, UserCreateUserData, UserCreateUserResponse, UserReadUsersData, UserReadUsersResponse, UserRegisterNewUserData, UserRegisterNewUserResponse, UserReadMeResponse, UserDeleteUserMeResponse, UserUpdateUserMeData, UserUpdateUserMeResponse, UserReadUserByIdData, UserReadUserByIdResponse, UserUpdateUserData, UserUpdateUserResponse, UserDeleteUserData, UserDeleteUserResponse, UserUpdatePasswordData, UserUpdatePasswordResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
 
 export class AuthService {
     /**
@@ -116,6 +116,34 @@ export class DocumentsService {
             }
         });
     }
+    
+    /**
+     * Read Documents
+     * @param data The data for the request.
+     * @param data.skip
+     * @param data.limit
+     * @param data.orderBy
+     * @param data.search
+     * @param data.descending
+     * @returns DocumentsPublic Successful Response
+     * @throws ApiError
+     */
+    public static readDocuments(data: DocumentsReadDocumentsData = {}): CancelablePromise<DocumentsReadDocumentsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/documents/',
+            query: {
+                skip: data.skip,
+                limit: data.limit,
+                order_by: data.orderBy,
+                search: data.search,
+                descending: data.descending
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
 }
 
 export class PrivateService {
@@ -133,6 +161,28 @@ export class PrivateService {
             url: '/api/v1/private/users/',
             body: data.requestBody,
             mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class UploadsService {
+    /**
+     * Read Document
+     * @param data The data for the request.
+     * @param data.filename
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static readDocument(data: UploadsReadDocumentData): CancelablePromise<UploadsReadDocumentResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/uploads/{filename}',
+            path: {
+                filename: data.filename
+            },
             errors: {
                 422: 'Validation Error'
             }

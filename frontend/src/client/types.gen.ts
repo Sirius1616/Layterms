@@ -24,6 +24,11 @@ export type DocumentPublic = {
     extraction_status: ExtractionStatus;
 };
 
+export type DocumentsPublic = {
+    data: Array<DocumentPublic>;
+    count: number;
+};
+
 export type ExtractionStatus = 'pending' | 'success' | 'failed';
 
 export type HTTPValidationError = {
@@ -135,11 +140,27 @@ export type DocumentsCreateDocumentData = {
 
 export type DocumentsCreateDocumentResponse = (DocumentPublic);
 
+export type DocumentsReadDocumentsData = {
+    descending?: boolean;
+    limit?: number;
+    orderBy?: (string | null);
+    search?: (string | null);
+    skip?: number;
+};
+
+export type DocumentsReadDocumentsResponse = (DocumentsPublic);
+
 export type PrivateCreateUserData = {
     requestBody: PrivateUserCreate;
 };
 
 export type PrivateCreateUserResponse = (UserPublic);
+
+export type UploadsReadDocumentData = {
+    filename: string;
+};
+
+export type UploadsReadDocumentResponse = (unknown);
 
 export type UserCreateUserData = {
     requestBody: UserCreate;

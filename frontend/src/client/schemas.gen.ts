@@ -107,6 +107,25 @@ export const DocumentPublicSchema = {
     title: 'DocumentPublic'
 } as const;
 
+export const DocumentsPublicSchema = {
+    properties: {
+        data: {
+            items: {
+                '$ref': '#/components/schemas/DocumentPublic'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        }
+    },
+    type: 'object',
+    required: ['data', 'count'],
+    title: 'DocumentsPublic'
+} as const;
+
 export const ExtractionStatusSchema = {
     type: 'string',
     enum: ['pending', 'success', 'failed'],

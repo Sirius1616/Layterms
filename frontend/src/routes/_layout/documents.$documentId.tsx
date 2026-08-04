@@ -4,6 +4,7 @@ import { ArrowLeft, FileText } from "lucide-react"
 import { Suspense } from "react"
 
 import { DocumentChat } from "@/components/Documents/DocumentChat"
+import { DocumentViewer } from "@/components/Documents/DocumentViewer"
 import { ExplanationPanel } from "@/components/Documents/ExplanationPanel"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -76,7 +77,10 @@ function DocumentDetailContent() {
       </div>
 
       <div className={cn("grid gap-6", "lg:grid-cols-2")}>
-        <ExplanationPanel documentId={document.id} />
+        <div className="flex flex-col gap-6">
+          <DocumentViewer documentId={document.id} fileUrl={document.file_url} />
+          <ExplanationPanel documentId={document.id} />
+        </div>
         <DocumentChat documentId={document.id} />
       </div>
     </div>
