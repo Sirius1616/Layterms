@@ -6,9 +6,14 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import type { DocumentPublic, ExtractionStatus } from "@/types/documents"
 import { formatDate } from "@/utils/format"
+import { DocumentActionsMenu } from "./DocumentActionsMenu"
 
 function getFileName(fileUrl: string): string {
   return fileUrl.split("/").pop() || fileUrl
+}
+
+function getDisplayName(document: DocumentPublic): string {
+  return document.filename || getFileName(document.file_url)
 }
 
 function StatusBadge({ status }: { status: ExtractionStatus }) {
@@ -35,7 +40,7 @@ export const columns: ColumnDef<DocumentPublic>[] = [
           <FileText className="size-4 text-muted-foreground" />
         </div>
         <span className="font-medium max-w-xs truncate">
-          {getFileName(row.original.file_url)}
+          {getDisplayName(row.original)}
         </span>
       </div>
     ),
@@ -58,10 +63,11 @@ export const columns: ColumnDef<DocumentPublic>[] = [
     id: "actions",
     header: () => <span className="sr-only">Actions</span>,
     cell: ({ row }) => (
-      <div className="flex justify-end">
+      <div className="flex items-center justify-end gap-1">
         <Button variant="ghost" size="sm" asChild>
           <a href={`/documents/${row.original.id}`}>Open</a>
         </Button>
+        <DocumentActionsMenu document={row.original} />
       </div>
     ),
   },

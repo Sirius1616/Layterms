@@ -25,9 +25,16 @@ export const documentsApi = {
     })
   },
 
-  async getDocument(id: string): Promise<DocumentPublic | undefined> {
-    const { data } = await documentsApi.listDocuments()
-    return data.find((document) => document.id === id)
+  async getDocument(id: string): Promise<DocumentPublic> {
+    return DocumentsService.readDoc({ id })
+  },
+
+  async updateDocument(id: string, filename: string): Promise<DocumentPublic> {
+    return DocumentsService.changeFilename({ id, requestBody: { filename } })
+  },
+
+  async deleteDocument(id: string): Promise<void> {
+    return DocumentsService.deleteFile({ id })
   },
 
   async getFileBlob(filename: string): Promise<Blob> {

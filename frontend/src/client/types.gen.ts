@@ -20,6 +20,7 @@ export type Body_documents_create_document = {
 export type DocumentPublic = {
     file_url: string;
     id: string;
+    filename?: (string | null);
     uploaded_at: string;
     extraction_status: ExtractionStatus;
 };
@@ -27,6 +28,10 @@ export type DocumentPublic = {
 export type DocumentsPublic = {
     data: Array<DocumentPublic>;
     count: number;
+};
+
+export type DocumentUpdate = {
+    filename?: (string | null);
 };
 
 export type ExtractionStatus = 'pending' | 'success' | 'failed';
@@ -150,6 +155,25 @@ export type DocumentsReadDocumentsData = {
 
 export type DocumentsReadDocumentsResponse = (DocumentsPublic);
 
+export type DocumentsDeleteFileData = {
+    id: string;
+};
+
+export type DocumentsDeleteFileResponse = (void);
+
+export type DocumentsChangeFilenameData = {
+    id: string;
+    requestBody: DocumentUpdate;
+};
+
+export type DocumentsChangeFilenameResponse = (DocumentPublic);
+
+export type DocumentsReadDocData = {
+    id: string;
+};
+
+export type DocumentsReadDocResponse = (DocumentPublic);
+
 export type PrivateCreateUserData = {
     requestBody: PrivateUserCreate;
 };
@@ -157,7 +181,7 @@ export type PrivateCreateUserData = {
 export type PrivateCreateUserResponse = (UserPublic);
 
 export type UploadsReadDocumentData = {
-    filename: string;
+    fileId: string;
 };
 
 export type UploadsReadDocumentResponse = (unknown);

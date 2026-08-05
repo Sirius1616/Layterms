@@ -5,6 +5,7 @@ export type MessageRole = "user" | "assistant"
 export type DocumentPublic = {
   file_url: string
   id: string
+  filename?: string | null
   uploaded_at: string
   extraction_status: ExtractionStatus
 }

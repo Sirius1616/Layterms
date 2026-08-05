@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
 import { documentsApi } from "@/services/documents"
+import type { DocumentPublic } from "@/types/documents"
 
 export const Route = createFileRoute("/_layout/documents/$documentId")({
   component: DocumentDetail,
@@ -31,6 +32,10 @@ function getDocumentQueryOptions(documentId: string) {
 
 function getFileName(fileUrl: string): string {
   return fileUrl.split("/").pop() || fileUrl
+}
+
+function getDisplayName(document: DocumentPublic): string {
+  return document.filename || getFileName(document.file_url)
 }
 
 function DocumentDetailContent() {
@@ -67,7 +72,7 @@ function DocumentDetailContent() {
           </div>
           <div>
             <h1 className="text-2xl font-bold tracking-tight">
-              {getFileName(document.file_url)}
+              {getDisplayName(document)}
             </h1>
             <p className="text-sm text-muted-foreground capitalize">
               {document.extraction_status}

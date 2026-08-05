@@ -93,6 +93,17 @@ export const DocumentPublicSchema = {
             format: 'uuid',
             title: 'Id'
         },
+        filename: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Filename'
+        },
         uploaded_at: {
             type: 'string',
             format: 'date-time',
@@ -105,6 +116,26 @@ export const DocumentPublicSchema = {
     type: 'object',
     required: ['file_url', 'id', 'uploaded_at', 'extraction_status'],
     title: 'DocumentPublic'
+} as const;
+
+export const DocumentUpdateSchema = {
+    properties: {
+        filename: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 128,
+                    minLength: 3
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Filename'
+        }
+    },
+    type: 'object',
+    title: 'DocumentUpdate'
 } as const;
 
 export const DocumentsPublicSchema = {
