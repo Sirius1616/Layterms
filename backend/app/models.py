@@ -91,6 +91,7 @@ class DocumentBase(SQLModel):
 
 class Document(DocumentBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
+    filename: str = Field(nullable=True, max_length=128, min_length=3)
     user_id: uuid.UUID = Field(foreign_key="user.id", index=True)
     uploaded_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     extraction_status: ExtractionStatus = ExtractionStatus.pending
@@ -105,8 +106,13 @@ class DocumentCreate(DocumentBase):
     pass
 
 
+class DocumentUpdate(SQLModel):
+    filename: str | None = Field(default=None, min_length=3, max_length=128)
+
+
 class DocumentPublic(DocumentBase):
     id: uuid.UUID
+    filename: str | None = None
     uploaded_at: datetime
     extraction_status: ExtractionStatus
 
