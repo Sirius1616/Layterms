@@ -24,17 +24,18 @@ def create_document(
     file: UploadFile,
     ) -> DocumentPublic:
     ext = os.path.splitext(file.filename)[1]
-    filename = f"{uuid.uuid4()}{ext}"
+    file_id = f"{uuid.uuid4()}{ext}"
 
-    filepath = Path(__file__).parent.parent.parent.parent/f"{settings.UPLOAD_DIR}/{filename}"
+    filepath = Path(__file__).parent.parent.parent.parent/f"{settings.UPLOAD_DIR}/{file_id}"
     filepath.parent.mkdir(parents=True, exist_ok=True)
     with filepath.open("wb") as out:
         shutil.copyfileobj(file.file, out)
 
-    file_url = f"{settings.API_V1_STR}/{settings.UPLOAD_DIR}/{filename}"
+    file_url = f"{settings.API_V1_STR}/{settings.UPLOAD_DIR}/{file_id}"
 
     document = Document(file_url=file_url, 
                         user_id=current_user.id,
+                        filename=file.filename
                         )
 
     session.add(document)
@@ -55,17 +56,17 @@ def read_documents(session: SessionDep, current_user: CurrentUser, filters: Filt
     return documents
 
 
-@upload_router.get("/{filename}")
-def read_document(session: SessionDep, current_user: CurrentUser, filename: str) -> FileResponse:
+@upload_router.get("/{file_id}")
+def read_document(session: SessionDep, current_user: CurrentUser, file_id: str) -> FileResponse:
     upload_dir = (Path(__file__).parent.parent.parent.parent/settings.UPLOAD_DIR).resolve()
-    file_path = (upload_dir/filename).resolve()
+    file_path = (upload_dir/file_id).resolve()
 
     if not file_path.is_relative_to(upload_dir):
         raise HTTPException(status_code=404, detail="Invalid file path")
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="File not found")
 
-    file_url = f"{settings.API_V1_STR}/{settings.UPLOAD_DIR}/{filename}"
+    file_url = f"{settings.API_V1_STR}/{settings.UPLOAD_DIR}/{file_id}"
     file = session.exec(select(Document).where(Document.file_url == file_url
                                                ).where(Document.user_id == current_user.id)).first()
     if not file:
