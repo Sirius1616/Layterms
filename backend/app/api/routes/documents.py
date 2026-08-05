@@ -1,4 +1,4 @@
-from app.models import (DocumentPublic, Document, ExtractionStatus, DocumentsPublic, Filter)
+from app.models import (DocumentPublic, Document, ExtractionStatus, DocumentsPublic, Filter, DocumentUpdate)
 from fastapi import UploadFile, Form, APIRouter, HTTPException, Query
 from app.api.deps import SessionDep, CurrentUser
 from fastapi.responses import FileResponse
@@ -74,19 +74,18 @@ def read_document(session: SessionDep, current_user: CurrentUser, file_id: str) 
     return FileResponse(path=file_path)
 
 
-@router.delete("/{filename}", status_code=204)
-def delete_file(session: SessionDep, current_user: CurrentUser, filename: str) -> None:
-    file_url = f"{settings.API_V1_STR}/{settings.UPLOAD_DIR}/{filename}"
-
+@router.delete("/{id}", status_code=204)
+def delete_file(session: SessionDep, current_user: CurrentUser, id: str) -> None:
     doc = session.exec(select(Document).
-                       where(Document.file_url == file_url).
+                       where(Document.id == id).
                        where(Document.user_id == current_user.id)).first()
     if not doc:
         raise HTTPException(status_code=404, detail="File not found")
     
     upload_dir = (Path(__file__).parent.parent.parent.parent/settings.UPLOAD_DIR).resolve()
+    file_id = Path(doc.file_url).name
 
-    file_path = (upload_dir/filename).resolve()
+    file_path = (upload_dir/file_id).resolve()
     if not file_path.is_relative_to(upload_dir):
         raise HTTPException(status_code=400, detail="Invalid filename")
 
@@ -96,3 +95,29 @@ def delete_file(session: SessionDep, current_user: CurrentUser, filename: str) -
 
     session.delete(doc)
     session.commit()
+
+@router.patch("/{id}", response_model=DocumentPublic)
+def change_filename(session: SessionDep, 
+                    current_user: CurrentUser, 
+                    id: uuid.UUID, document_in: DocumentUpdate) -> DocumentPublic:
+    doc = session.get(Document, id)
+    if not doc:
+        raise HTTPException(status_code=404, detail="Requested document not found")
+    if doc.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="forbidden")
+    document_data = document_in.model_dump(exclude_unset=True)
+    document = doc.sqlmodel_update(document_data)
+    session.add(document)
+    session.commit()
+    session.refresh(document)
+    return document
+
+
+@router.get("/{id}", response_model=DocumentPublic)
+def read_doc(session: SessionDep, current_user: CurrentUser, id: uuid.UUID) -> DocumentPublic:
+    doc = session.get(Document, id)
+    if not doc:
+        raise HTTPException(status_code=404, detail="document not found")
+    if doc.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="forbidden")
+    return doc
