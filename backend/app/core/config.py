@@ -28,6 +28,7 @@ class Settings(BaseSettings):
 
     PROJECT_NAME: str = 'Layterms'
     API_V1_STR: str = "/api/v1"
+    UPLOAD_MAX_SIZE: int = 1024*1024*10
     UPLOAD_DIR: str = "uploads"
     ENVIRONMENT: Literal["local", "development", "production"] = "local"
     BACKEND_CORS_ORIGIN: Annotated[list[AnyUrl] | str, BeforeValidator(parse_cors)] = []
