@@ -18,7 +18,7 @@ Filters = Annotated[Filter, Query()]
 
 
 @router.post("/", response_model=DocumentPublic, status_code=201)
-def create_document(
+async def create_document(
     session: SessionDep, 
     current_user: CurrentUser, 
     file: UploadFile,
@@ -28,8 +28,34 @@ def create_document(
 
     filepath = Path(__file__).parent.parent.parent.parent/f"{settings.UPLOAD_DIR}/{file_id}"
     filepath.parent.mkdir(parents=True, exist_ok=True)
-    with filepath.open("wb") as out:
-        shutil.copyfileobj(file.file, out)
+    MAGIC = {
+        b"%PDF-": "pdf",          # PDF
+        b"\x89PNG\r": "png",      # PNG
+        b"\xff\xd8\xff": "jpeg",  # JPEG
+        b"PK\x03\x04": "zip",     # docx / xlsx are zips
+        }
+    await file.seek(0)
+    sample = await file.read(1024)
+    await file.seek(0)
+    TEXT_EXT = {".txt", ".eml"}
+
+    ext = os.path.splitext(file.filename)[1].lower()
+    is_binary = any(sample.startswith(sig) for sig in MAGIC)
+    is_text = ext in TEXT_EXT and b"\x00" not in sample
+    if not (is_binary or is_text):
+        raise HTTPException(status_code=415, detail="file type not allowed")
+    
+
+    size = 0
+    with filepath.open("wb") as buffer:
+        while chunk := file.file.read(1024*1024):
+            buffer.write(chunk)
+            size += len(chunk)
+            if size > settings.UPLOAD_MAX_SIZE:
+                break
+        if size > settings.UPLOAD_MAX_SIZE:
+            filepath.unlink(missing_ok=True)
+            raise HTTPException(status_code=413, detail="File too large")
 
     file_url = f"{settings.API_V1_STR}/{settings.UPLOAD_DIR}/{file_id}"
 
