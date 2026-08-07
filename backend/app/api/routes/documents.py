@@ -23,11 +23,7 @@ async def create_document(
     current_user: CurrentUser, 
     file: UploadFile,
     ) -> DocumentPublic:
-    ext = os.path.splitext(file.filename)[1]
-    file_id = f"{uuid.uuid4()}{ext}"
-
-    filepath = Path(__file__).parent.parent.parent.parent/f"{settings.UPLOAD_DIR}/{file_id}"
-    filepath.parent.mkdir(parents=True, exist_ok=True)
+    
     MAGIC = {
         b"%PDF-": "pdf",          # PDF
         b"\x89PNG\r": "png",      # PNG
@@ -37,18 +33,24 @@ async def create_document(
     await file.seek(0)
     sample = await file.read(1024)
     await file.seek(0)
-    TEXT_EXT = {".txt", ".eml"}
+    matched_sig = next((sig for sig in MAGIC if sample.startswith(sig)), None)
 
-    ext = os.path.splitext(file.filename)[1].lower()
-    is_binary = any(sample.startswith(sig) for sig in MAGIC)
-    is_text = ext in TEXT_EXT and b"\x00" not in sample
-    if not (is_binary or is_text):
-        raise HTTPException(status_code=415, detail="file type not allowed")
+    TEXT_EXT = {".txt", ".eml"}
+    stored_ext = os.path.splitext(file.filename)[1].lower()
+    is_text = stored_ext in TEXT_EXT and b"\x00" not in sample
+    if matched_sig is None and not is_text:
+        raise HTTPException(status_code=415, detail="Invalid file format")
+
+    ext = f".{MAGIC[matched_sig]}" if matched_sig else stored_ext 
+
+    file_id = f"{uuid.uuid4()}{ext}"
     
+    filepath = Path(__file__).parent.parent.parent.parent/f"{settings.UPLOAD_DIR}/{file_id}"
+    filepath.parent.mkdir(parents=True, exist_ok=True)
 
     size = 0
     with filepath.open("wb") as buffer:
-        while chunk := file.file.read(1024*1024):
+        while chunk := await file.read(1024*1024):
             buffer.write(chunk)
             size += len(chunk)
             if size > settings.UPLOAD_MAX_SIZE:
